@@ -1,0 +1,12 @@
+# 資料庫初始化
+
+測試機 product-based 資料庫
+
+DROP TABLE IF EXISTS crawled_urls;
+CREATE TABLE crawled_urls(
+	xx_url BIGINT UNSIGNED PRIMARY KEY,
+	article_url TEXT,
+	website VARCHAR(50),
+	published_date DATE,
+	created_at DATETIME
+)
