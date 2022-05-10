@@ -78,7 +78,7 @@ class JsonPipeline:
         return self.to_exporter[(y,m,website)] 
  
 class MysqlPipeline:
-    today = datetime.today().strftime('%Y-%m-%d')
+    this_month = datetime.today().strftime('%Y-%m')
     def __init__(self):
         self.connect = pymysql.connect(
             host=const.MYSQL_HOST,
@@ -90,7 +90,8 @@ class MysqlPipeline:
         )
         self.cursor = self.connect.cursor()
     def process_item(self, item, spider):
-        if item['published_date'] != self.today:
+        published_month = item['published_date'][0:7]
+        if published_month != self.this_month:
             sql = 'INSERT INTO crawled_urls(xx_url, article_url, website, published_date, created_at) VALUES(%s,%s,%s,%s,%s)'
             data = (item['xx_url'], item['article_url'], item['website'], item['published_date'], item['created_at'])
             self.cursor.execute(sql, data)

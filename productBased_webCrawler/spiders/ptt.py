@@ -15,12 +15,12 @@ class PttSpider(scrapy.Spider):
     count_page = 0
 
     # for first crawl
-    first_crawl = True
+    first_crawl = False
     last_pg = 5
     # for first crawl
 
     # for update crawl
-    max_page = 10
+    max_page = 1000
     # for update crawl
 
     def __init__(self, name=None, **kwargs):
@@ -38,7 +38,7 @@ class PttSpider(scrapy.Spider):
                             callback=self.get_every_articles)
         else:
             #如果是為了更新爬取新文章，從index頁(最新文章)開始爬取，爬完一頁再爬上一個目錄頁，直到沒有上一頁連結為止
-            yield scrapy.Request(url='https://www.ptt.cc/bbs/car/index3000.html',
+            yield scrapy.Request(url='https://www.ptt.cc/bbs/car/index.html',
                                 callback=self.get_every_articles)
             
 
@@ -59,6 +59,7 @@ class PttSpider(scrapy.Spider):
         if (not self.first_crawl) and (len(not_crawled_urls) > 0):
             next_url = self.domain+response.xpath('//div[@class="btn-group btn-group-paging"]/a/@href').getall()[1]
             # 如果有下一頁連結，並且已經爬取過的目錄頁數目沒有超過max_page，則爬取下一頁
+            print(f'next_url={next_url}')
             if next_url and (self.count_page < self.max_page):
                 yield scrapy.Request(url=next_url,
                                 callback=self.get_every_articles)

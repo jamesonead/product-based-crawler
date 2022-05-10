@@ -10,9 +10,9 @@ configure_logging()
 settings = get_project_settings() # settings not required if running
 runner = CrawlerRunner(settings)  # from script, defaults provided
 
-#runner.crawl('ptt')
+runner.crawl('ptt')
 #runner.crawl('ucar')
-runner.crawl('jorsindo')
+#runner.crawl('jorsindo')
 
 d = runner.join()
 d.addBoth(lambda _: reactor.stop())

@@ -51,7 +51,7 @@ class JorsindoSpider(scrapy.Spider):
         x = re.findall(r"(\d+).html",last_pg_url) # x is a list
         last_pg = int(x[0]) if len(x) > 0 else 0
         if last_pg > 0:
-            for p in range(last_pg,0,-1):
+            for p in range(last_pg,last_pg-self.max_page,-1):
                 url = f'https://forum.jorsindo.com/forum-{cat_id}-{p}.html'
                 print(url)
                 yield scrapy.Request(url=url, callback=self.get_every_articles,
