@@ -47,7 +47,7 @@ class JsonPipeline:
         
     def process_item(self, item, spider):
         # Just for testing
-        item['html'] = ''
+        #item['html'] = ''
         # End for testing
         # 儲存成json前，將xx_url存成str
         item['xx_url'] = str(item['xx_url'])

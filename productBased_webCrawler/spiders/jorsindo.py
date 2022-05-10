@@ -6,6 +6,7 @@ import pytz
 
 from ..items import ArticleItem
 from ..toolkits import tools
+import re
 
 class JorsindoSpider(scrapy.Spider):
 
@@ -13,13 +14,12 @@ class JorsindoSpider(scrapy.Spider):
     allowed_domains = ['forum.jorsindo.com']
     domain = 'https://forum.jorsindo.com/'
 
-    categories = [('汽車綜合討論串',49),('歐系車廠',116),('日系車廠',114),
-                  ('美系/國產/韓系/電動車/其他',115),('車輛零組件與改裝品區',119)]
-
-    # just for testing
     count_page = {49:0,116:0,114:0,115:0,119:0}
+
+    first_crawl = True
+    # for first and update crawl
     max_page = 2
-    # end for testing
+    # for first and update crawl
 
     def __init__(self, name=None, **kwargs):
         super().__init__(name, **kwargs)
@@ -29,34 +29,58 @@ class JorsindoSpider(scrapy.Spider):
         tools.close_mysql(self.connect,self.cursor)
 
     def start_requests(self):
-        cat_ids = [cat[1] for cat in self.categories]
+        cat_ids = [cat_id for cat_id in self.count_page]
         # first_pages:所有文章類型下的第一頁目錄
         first_pages = ['https://forum.jorsindo.com/forum-{}-1.html'.format(id) for id in cat_ids]
+
         for cat_id, first_page in zip(cat_ids,first_pages):
-            yield scrapy.Request(url=first_page, callback=self.get_every_articles,meta={"cat_id":cat_id})
+            if self.first_crawl:
+                # 第一次跑
+                yield scrapy.Request(url=first_page, callback=self.get_last_page,
+                                    meta={"cat_id":cat_id})
+            else:
+                # 跑更新程式
+                yield scrapy.Request(url=first_page, callback=self.get_every_articles,
+                                    meta={"cat_id":cat_id})
+
+    # 只有第一次爬蟲會需要用到
+    # jorsindo最舊的文章會在最後一頁，此函式會由最舊的目錄頁面開始爬取文章
+    def get_last_page(self,response):
+        cat_id = response.meta['cat_id']
+        last_pg_url = response.xpath('//div[@class="pg"]/a[@class="last"]/@href').get()
+        x = re.findall(r"(\d+).html",last_pg_url) # x is a list
+        last_pg = int(x[0]) if len(x) > 0 else 0
+        if last_pg > 0:
+            for p in range(last_pg,0,-1):
+                url = f'https://forum.jorsindo.com/forum-{cat_id}-{p}.html'
+                print(url)
+                yield scrapy.Request(url=url, callback=self.get_every_articles,
+                                    meta={"cat_id":cat_id},dont_filter=True)
+        else:
+            print('[ERROR] Cannot find the last page.')
 
     def get_every_articles(self,response):
+
         cat_id = response.meta['cat_id']
-        # start for testing
-        self.count_page[cat_id] = self.count_page[cat_id] + 1
-        if self.count_page[cat_id]>self.max_page:
-            return
-        print(f'cat_id = {cat_id}, crawling page {self.count_page[cat_id]}')
-        # end for testing
 
         hrefs = response.xpath('//table[@id="threadlisttableid"]/tbody[contains(@id,"normalthread_")]//a[@class="s xst"]/@href').getall()
         urls = [self.domain + href for href in hrefs]
         not_crawled_urls = tools.not_crawled_urls(self.cursor,urls)
         #print(not_crawled_urls)
-        if not_crawled_urls:
+        if len(not_crawled_urls)>0:
             for url,xx_url in not_crawled_urls:
                 yield scrapy.Request(url=url, callback=self.parse)
+
+        self.count_page[cat_id] = self.count_page[cat_id] + 1
+        print(f'目前{self.name}:{cat_id}已爬取{self.count_page[cat_id]}頁')
+
+        # 如果不是第一次爬jorsindo，則爬取下一頁目錄
+        if (not self.first_crawl) and len(not_crawled_urls)>0:
             # 獲取前一頁目錄的url
             next_url = self.domain+response.xpath('//div[@class="pg"]/a[@class="nxt"]/@href').get()
-            #print(next_url)
-            if next_url:
+            if next_url and (self.count_page[cat_id]<self.max_page):
                 yield scrapy.Request(url=next_url, callback=self.get_every_articles,meta={"cat_id":cat_id})
-
+        
 
     def parse(self, response):
         timezone = pytz.timezone('Asia/Taipei')
