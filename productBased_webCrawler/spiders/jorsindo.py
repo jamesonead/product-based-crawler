@@ -16,10 +16,11 @@ class JorsindoSpider(scrapy.Spider):
 
     count_page = {49:0,116:0,114:0,115:0,119:0}
 
-    first_crawl = True
+    first_crawl = False
     # for first and update crawl
     max_page = 2
     # for first and update crawl
+
 
     def __init__(self, name=None, **kwargs):
         super().__init__(name, **kwargs)
