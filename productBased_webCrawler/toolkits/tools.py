@@ -26,7 +26,8 @@ def hash_url(url):
 
 def not_crawled_urls(cursor, urls):
     xx_urls = [hash_url(url) for url in urls]
-    sql = "select xx_url from crawled_urls where xx_url in ({})".format(",".join([str(xx_url) for xx_url in xx_urls]))
+    xx_urls = ",".join([str(xx_url) for xx_url in xx_urls])
+    sql = f'select xx_url from {const.MYSQL_TABLE} where xx_url in ({xx_urls})'
     cursor.execute(sql)
     crawled_xx_urls = [result[0] for result in cursor.fetchall()]
     ll = []

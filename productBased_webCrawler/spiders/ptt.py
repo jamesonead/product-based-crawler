@@ -20,7 +20,7 @@ class PttSpider(scrapy.Spider):
     # for first crawl
 
     # for update crawl
-    max_page = 3
+    max_page = 30
     # for update crawl
 
     def __init__(self, name=None, **kwargs):

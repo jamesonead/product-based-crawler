@@ -18,7 +18,7 @@ class JorsindoSpider(scrapy.Spider):
 
     first_crawl = False
     # for first and update crawl
-    max_page = 2
+    max_page = 500
     # for first and update crawl
 
 
@@ -54,7 +54,7 @@ class JorsindoSpider(scrapy.Spider):
         if last_pg > 0:
             for p in range(last_pg,0,-1):
                 url = f'https://forum.jorsindo.com/forum-{cat_id}-{p}.html'
-                print(url)
+                #print(url)
                 yield scrapy.Request(url=url, callback=self.get_every_articles,
                                     meta={"cat_id":cat_id},dont_filter=True)
         else:
@@ -73,7 +73,7 @@ class JorsindoSpider(scrapy.Spider):
                 yield scrapy.Request(url=url, callback=self.parse)
 
         self.count_page[cat_id] = self.count_page[cat_id] + 1
-        print(f'目前{self.name}:{cat_id}已爬取{self.count_page[cat_id]}頁')
+        print(f'目前已爬取:{response.url}')
 
         # 如果不是第一次爬jorsindo，則爬取下一頁目錄
         if (not self.first_crawl) and len(not_crawled_urls)>0:
@@ -123,7 +123,6 @@ class JorsindoSpider(scrapy.Spider):
             "article_text":article_text,
             "html":html
         }
-        print(data)
         articleItem = ArticleItem(data)
         yield articleItem
         

@@ -92,7 +92,7 @@ class MysqlPipeline:
     def process_item(self, item, spider):
         published_month = item['published_date'][0:7]
         if published_month != self.this_month:
-            sql = 'INSERT INTO crawled_urls(xx_url, article_url, website, published_date, created_at) VALUES(%s,%s,%s,%s,%s)'
+            sql = f'INSERT INTO {const.MYSQL_TABLE}(xx_url, article_url, website, published_date, created_at) VALUES(%s,%s,%s,%s,%s)'
             data = (item['xx_url'], item['article_url'], item['website'], item['published_date'], item['created_at'])
             self.cursor.execute(sql, data)
         return item
