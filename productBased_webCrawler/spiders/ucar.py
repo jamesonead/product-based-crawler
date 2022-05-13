@@ -10,10 +10,9 @@ from bs4 import BeautifulSoup
 class UcarSpider(scrapy.Spider):
     name = "ucar"
     domain = 'https://forum.u-car.com.tw'
-    categories = {1:{'name':'汽車'}}
     # just for test
     count = 0
-    max = 2
+    #max = 5000
     # end for test
     def __init__(self, name=None, **kwargs):
         super().__init__(name, **kwargs)
@@ -23,17 +22,10 @@ class UcarSpider(scrapy.Spider):
         tools.close_mysql(self.connect,self.cursor)
 
     def start_requests(self):
-        for cat_id in self.categories:
-            first_pg = f'https://forum.u-car.com.tw/forum/list?category={cat_id}'
-            yield scrapy.Request(url=first_pg, callback=self.get_every_page_article)
+        first_pg = f'https://forum.u-car.com.tw/forum/list?category=1'
+        yield scrapy.Request(url=first_pg, callback=self.get_every_page_article)
 
     def get_every_page_article(self,response):
-        # just for test
-        self.count = self.count + 1
-        if self.count > self.max:
-            return
-        # end for test
-        print("ucar crawling page {}".format(self.count))
         hrefs = response.xpath('//div[@class="title "]/a/@href').getall()
         urls = [self.domain+href for href in hrefs]
         not_crawled_urls = tools.not_crawled_urls(self.cursor,urls)
@@ -44,6 +36,12 @@ class UcarSpider(scrapy.Spider):
             next_url = self.domain+response.xpath('//li[@class="arrow_right_s"]/a[@class="arrow_right_1"]/@href').get()
             if next_url:
                 yield scrapy.Request(url=next_url, callback=self.get_every_page_article)
+        print("ucar crawling page {}".format(self.count))
+        # just for test
+        #self.count = self.count + 1
+        #if self.count > self.max:
+        #    return
+        # end for test
         
     
     def parse(self, response):
