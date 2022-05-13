@@ -36,9 +36,10 @@ class UcarSpider(scrapy.Spider):
             next_url = self.domain+response.xpath('//li[@class="arrow_right_s"]/a[@class="arrow_right_1"]/@href').get()
             if next_url:
                 yield scrapy.Request(url=next_url, callback=self.get_every_page_article)
-        print("ucar crawling page {}".format(self.count))
         # just for test
-        #self.count = self.count + 1
+        self.count = self.count + 1
+        #print("ucar crawling page {}".format(self.count))
+        print(f'目前已爬取:{response.url}')
         #if self.count > self.max:
         #    return
         # end for test
